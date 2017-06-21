@@ -1,7 +1,7 @@
 require 'json'
 require 'matrix'
 require './enumerable_extension'
-# require './matrix_extension'
+require './matrix_extension'
 
 module LinearRegression
     class LinearRegressionBase
@@ -38,7 +38,7 @@ module LinearRegression
         end
     end
 
-    class ALS < LinearRegressionBase
+    class AlternatingLeastSquares < LinearRegressionBase
         def train(entries)
             label = entries.map{|e| e[:label] }
             features = entries.map{|e| e[:features] }.map{|e| e+[1] }
@@ -52,9 +52,12 @@ module LinearRegression
         end
     end
 
-    class GD < LinearRegressionBase
-        def initialize(numIter: 100, alpha: 0.01)
-            @numIter = numIter
+    # alias
+    ALS = AlternatingLeastSquares
+
+    class GradientDescent < LinearRegressionBase
+        def initialize(num_iter: 100, alpha: 0.01)
+            @num_iter = num_iter
             @alpha = alpha
         end
 
@@ -69,13 +72,16 @@ module LinearRegression
 
             @beta = Matrix[@dimension.times.map{|x|1}].t
 
-            @numIter.times do |it|
+            @num_iter.times do |i|
                 y_bar = x * @beta
                 loss = y_bar - y
                 gradient = (x.t * loss)/ entries.size
                 @beta = @beta - (@alpha * gradient)
-                yield it,@beta,loss if block!=nil
+                yield i,@beta,loss if block!=nil
             end
         end
     end
+
+    # alias
+    GD = GradientDescent
 end

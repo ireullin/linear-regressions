@@ -1,4 +1,4 @@
-require './linear_regressions'
+require 'linear_regressions'
 
 trainee = [
     {features: [6,2],  label: 7},
@@ -16,12 +16,18 @@ test = [
     {features: [12,0], label: 11}
 ]
 
+# use Alternating Least Squares
 als = LinearRegression::ALS.new
 als.train(trainee)
 puts als.beta
 puts als.r_squared_score(test)
 
-gd = LinearRegression::GD.new(numIter: 1000, alpha: 0.01)
+# use Gradient Descent
+gd = LinearRegression::GD.new(num_iter: 1000, alpha: 0.01)
 gd.train(trainee)
 puts gd.beta
 puts gd.r_squared_score(test)
+
+gd.train(trainee) do |i,beta,loss|
+    puts "idexe=#{i} beta=#{beta} loss=#{loss}"
+end
