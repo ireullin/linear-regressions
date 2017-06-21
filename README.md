@@ -1,11 +1,11 @@
-# principal-components-analysis
+# linear-regressions
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'principal-components-analysis'
+gem 'linear-regressions'
 ```
 
 And then execute:
@@ -14,51 +14,53 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install principal-components-analysis
+    $ gem install linear-regressions
 
 ## Usage
 
 A simple example:
 
 ```ruby
-require 'principal-components-analysis'
+trainee = [
+    {features: [6,2],  label: 7},
+    {features: [8,1],  label: 9},
+    {features: [10,0], label: 13},
+    {features: [14,2], label: 17.5},
+    {features: [18,0], label: 18}
+]
 
-data = [[2,   0,   -1.4],
-        [2.2, 0.2, -1.5],
-        [2.4, 0.1, -1],
-        [1.9, 0,   -1.2]]
+test = [
+    {features: [8,2],  label: 11},
+    {features: [9,0],  label: 8.5},
+    {features: [11,2], label: 15},
+    {features: [16,2], label: 18},
+    {features: [12,0], label: 11}
+]
 
-# create a pca object within data
-pca = PCA.new(data)
+# use Alternating Least Squares
+als = LinearRegression::ALS.new
+als.train(trainee)
+puts als.beta
+puts als.r_squared_score(test)
 
-# show the eigen values & eigen vectors for the data
-puts "#{pca.eigen}\n\n"
+# use Gradient Descent
+gd = LinearRegression::GD.new(num_iter: 1000, alpha: 0.01)
+gd.train(trainee)
+puts gd.beta
+puts gd.r_squared_score(test)
 
-# reduce to 2 dimensions
-reduced_data, distortion_rate = pca.reduce(2)
-p reduced_data
-puts "distortion_rate=#{distortion_rate}\n\n"
-
-# reduce to 1 dimensions
-reduced_data, distortion_rate = pca.reduce(1)
-p reduced_data
-puts "distortion_rate=#{distortion_rate}\n\n"
+gd.train(trainee) do |i,beta,loss|
+    puts "idexe=#{i} beta=#{beta} loss=#{loss}"
+end
 ```
 
 Output below:
 
 ```
-[{:value=>0.06896846369330273, :vector=>[-0.25852548789080637, -0.6910187907758658, 0.6750241498683445]}, {:value=>0.036928271336293624, :vector=>[-0.892351724749828, 0.4384535489558841, 0.10708354095750225]}, {:value=>0.001603264970403666, :vector=>[0.3699634731251552, 0.5746751397116905, 0.7299832274446598]}]
-
-Matrix[[-1.462084785597295, -1.9346204068401591],
- [-1.719496056317464,   -2.0361083960946984],
- [-1.3645871998838663,  -2.204882325461501],
- [-1.3012274068345455,  -1.8239685261736758]]
-distortion_rate=0.014914092747941088
-
-Matrix[[-1.462084785597295],
- [-1.719496056317464],
- [-1.3645871998838663],
- [-1.3012274068345455]]
-distortion_rate=0.3584328958762537
+Matrix[[1.0104166666666667], [0.3958333333333335], [1.1875]]
+0.7701677731318466
+Matrix[[1.0200094830556161], [0.4315547941319965], [1.033605114003101]]
+0.7783524932121337
+idexe=0 beta=Matrix[[0.978], [0.992], [0.997]] loss=Matrix[[2], [1], [-2], [-0.5], [1]]
+idexe=1 etc...
 ```
